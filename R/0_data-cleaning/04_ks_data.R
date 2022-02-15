@@ -62,11 +62,6 @@ nces <- readRDS("data/nces_data.rds") %>%
   mutate(localid = toupper(localid)) %>%
   distinct()
 
-# nces <- readr::read_csv("data-raw/NCES_CCD.csv") %>% 
-#   filter(state == "KS") %>% 
-#   select(localid, NCES_leaid) %>% 
-#   distinct()
-
 df_nces <- df %>% 
   left_join(nces) %>% 
   tidylog::filter(!is.na(NCES_leaid)) %>% 

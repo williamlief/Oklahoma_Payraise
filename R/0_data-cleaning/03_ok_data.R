@@ -73,11 +73,6 @@ df2 <- df %>%
   ungroup()
 
 # Merge on NCES ----------------------------------------------------------------
-# nces <- read_csv("data-raw/NCES_CCD.csv", col_types = "dcccdc") %>% 
-#   filter(state=="OK") %>% 
-#   mutate(NCES_name = toupper(NCES_name)) %>% 
-#   select(-c(year, state, NCES_type)) %>% 
-#   unique() 
 
 nces <- readRDS("data/nces_data.rds") %>%
   filter(state == "OK") %>%
