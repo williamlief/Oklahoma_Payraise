@@ -2,6 +2,8 @@
 
 library(tidyverse)
 library(ggrepel)  
+library(scales)
+library(ggridges)
 
 WIDTH = 6
 HEIGHT = 4
@@ -250,3 +252,27 @@ ggplot(data = turn_rate_exp %>%
 # Labels got screwed up
 # Manually saved width = 811 height = 545
 # ggsave("figures/exp_turn.png", bg = "white", width = WIDTH, height = HEIGHT)
+
+
+# Salary distribution figure ----------------------------------------------
+
+# Note, technically redundant, but put here in case you just want to replicate this 
+# figure and missed line 86 
+
+df_payroll <- df_payroll %>% 
+  filter(group == "teacher") 
+
+p_excl <- nrow(df_payroll %>% filter(salary_total > 80000 | salary_total < 20000)) / nrow(df_payroll)
+
+ggplot(data = df_payroll,
+       aes(y = paste0(year-1, "-", year),
+           x = salary_total)) +
+  geom_density_ridges() +
+  coord_cartesian(xlim = c(20000, 80000)) +
+  theme_minimal() +
+  scale_x_continuous(labels = label_number(prefix = "$", suffix = "K", scale = 1e-3)) +
+  labs(x = "Total Salary", y = NULL, 
+       caption = str_wrap("Figures excludes 2.4% of records with salaries < $20K or > $80K. Figures includes all teachers, regardless of FTE level."),
+       title = "Distribution of Oklahoma Teacher Total Salaries")
+
+ggsave("figures/salary_distribution_ridge.png", width = WIDTH, heigh = HEIGHT, bg = "white")
