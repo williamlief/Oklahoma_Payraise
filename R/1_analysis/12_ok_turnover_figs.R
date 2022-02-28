@@ -6,7 +6,7 @@ library(ggrepel)
 WIDTH = 6
 HEIGHT = 4
 
-df_payroll <- readRDS("Data/OK_Payroll_2020-01-22_.rds") %>% 
+df_payroll <- readRDS("Data/OK_Payroll.rds") %>% 
   mutate(salary_total = salary_base + salary_fringe + 
            salary_other + salary_extra_duty)
 
