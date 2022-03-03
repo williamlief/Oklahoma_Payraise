@@ -232,8 +232,7 @@ het_sg_lines <- list(c("State Fixed Effects", rep("X", 6)),
                      c("Year Fixed Effects", rep("X", 6)), 
                      c("Staff Share Weights", rep("X", 6)),
                      c("Covariates", rep(c("", "X"), 3)),
-                     c("Sample", "Full", "Full", "Border", "Border", "PSM", "PSM"),
-                     c("Final Observed Year", rep(c(2020, 2019), 3)))
+                     c("Sample", "Full", "Full", "Border", "Border", "PSM", "PSM"))
 
 
 
@@ -295,5 +294,5 @@ s_highxp <- stargazer(ms_highxp,
 
 star_panel(s_lowxp, s_highxp, same.summary.stats = FALSE,
            panel.names = c("Low Experience Districts", "High Experience Districts")) %>% 
-  star_notes_tex(note.type = "caption", note = "Low experience districts are districts in the bottom third of Oklahoma districts' average teacher experience in 2018 (< 12.4 years). High experience districts are districts in the top third in 2018 (> 14.7 years). All models include state and year clustered standard errors. NCES and BLS data was not available for 2020 at the time this table was constructed.") %>% cat
+  star_notes_tex(note.type = "caption", note = "Low experience districts are districts in the bottom third of Oklahoma districts' average teacher experience in 2018 (< 12.4 years). High experience districts are districts in the top third in 2018 (> 14.7 years). All models include state and year clustered standard errors.") %>% cat
 

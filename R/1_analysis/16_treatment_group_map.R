@@ -5,8 +5,13 @@ library(ggthemes)
 
 # treatment group map -----------------------------------------------------
 
-# Creates figure 6. Requires raw data downloaded from OSF. Can be skipped 
-# if you just want to replicate the regression results.
+df_district <- readRDS("Data/clean_district.rds") %>%
+  filter(year <= 2020,
+         year > 2008) %>% 
+  mutate(turnover = turnover * 100, 
+         year = year - 2018)
+
+# Creates figure 6. Requires raw data downloaded from OSF.
 if (dir.exists("data-raw/EDGE_SCHOOLDISTRICT_TL18_SY1718")) {
   
   state_map_data <- 

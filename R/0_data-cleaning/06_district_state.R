@@ -183,6 +183,7 @@ df3 <- df2 %>%
 
 county <- readxl::read_excel("data-raw/border_counties.xlsx") %>% 
   mutate(border = 1) %>% 
+  filter(border_tx == 1 | border_ks == 1) %>% # only keep texas/kansas border
   select(county = County, state = State, starts_with("border"))
 
 df4 <- df3 %>% 
@@ -287,13 +288,3 @@ state <- district %>%
 
 saveRDS(district, "Data/clean_district.rds")
 saveRDS(state, "Data/clean_state.rds")
-
-dist_old <- readRDS("~/Documents/ResearchProjects/OK_Strikes_Turnover/data/clean_district_2021-01-11_.rds")
-dd <- arsenal::comparedf(district %>% filter(year <= 2020, year > 2008), 
-                   dist_old %>% filter(year <= 2020, year > 2008, state %in% c("OK", "TX", "KS")), 
-                   by = c("year", "NCES_leaid"))
-
-state_old <- readRDS("~/Documents/ResearchProjects/OK_Strikes_Turnover/data/clean_state_2021-01-11_.rds")
-ds <- arsenal::comparedf(state %>% filter(year <= 2020, year > 2008), 
-                   state_old %>% filter(year <= 2020, year > 2008, state %in% c("OK", "TX", "KS")), 
-                   by = c("year", "state", "sample"))
