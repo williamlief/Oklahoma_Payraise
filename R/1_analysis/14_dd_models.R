@@ -166,10 +166,22 @@ stargazer(m1, m2, m3, m4, m5, m6,
 # Heterogeneity analysis --------------------------------------------------
 
 
-# add groupings 
+# add groupings - 2018 for pay and exp
 thresh <- df_district %>% filter(year_fac == 2018, state == "OK") %>% 
-  summarize(across(c(avg_sal, avg_exp, turnover), quantile, probs = .33, .names = "{.col}_low"),
-            across(c(avg_sal, avg_exp, turnover), quantile, probs = .67, .names = "{.col}_high"))
+  summarize(across(c(avg_sal, avg_exp), quantile, probs = .33, .names = "{.col}_low"),
+            across(c(avg_sal, avg_exp), quantile, probs = .67, .names = "{.col}_high"))
+
+# 2013 to 2018 for turnover
+thresh_tmp <- df_district %>% 
+  filter(as.numeric(as.character(year_fac)) <= 2018,
+         as.numeric(as.character(year_fac)) > 2013,
+         state == "OK") %>% 
+  group_by(NCES_leaid) %>% 
+  summarize(across(c(turnover), mean, na.rm = T)) %>% 
+  summarize(across(c(turnover), quantile, probs = .33, .names = "{.col}_low"),
+            across(c(turnover), quantile, probs = .67, .names = "{.col}_high"))
+
+thresh <- cbind(thresh, thresh_tmp)
 
 add_levels <- function(dat) {
   mutate(dat, 
@@ -295,4 +307,34 @@ s_highxp <- stargazer(ms_highxp,
 star_panel(s_lowxp, s_highxp, same.summary.stats = FALSE,
            panel.names = c("Low Experience Districts", "High Experience Districts")) %>% 
   star_notes_tex(note.type = "caption", note = "Low experience districts are districts in the bottom third of Oklahoma districts' average teacher experience in 2018 (< 12.4 years). High experience districts are districts in the top third in 2018 (> 14.7 years). All models include state and year clustered standard errors.") %>% cat
+
+
+# Table 7 Turnover -------------------------------------------------------------
+
+ms_lowturn  <- het_models("third_turnover", "low")
+ms_highturn <- het_models("third_turnover", "high")
+
+
+s_lowturn <- stargazer(ms_lowturn, 
+                     title = "Low turnover vs high turnover Districs",
+                     type = sg_type,
+                     omit.stat = sg_omit_stats,
+                     star.cutoffs = sg_stars, 
+                     header = FALSE, 
+                     keep = "post_strike",
+                     add.lines = het_sg_lines)
+
+s_highturn <- stargazer(ms_highturn, 
+                      type = sg_type,
+                      omit.stat = sg_omit_stats,
+                      star.cutoffs = sg_stars, 
+                      header = FALSE, 
+                      keep = "post_strike",
+                      add.lines = het_sg_lines)
+
+
+star_panel(s_lowturn, s_highturn, same.summary.stats = FALSE,
+           panel.names = c("Low Turnover Districts", "High Turnover Districts")) %>% 
+  star_notes_tex(note.type = "caption", note = "Low turnover districts are districts in the bottom third of Oklahoma districts' average teacher turnover between 2013 and 2018 (< 12.5% years). High turnover districts are districts in the top third (> 17.8% years). All models include state and year clustered standard errors.") %>% cat
+
 
