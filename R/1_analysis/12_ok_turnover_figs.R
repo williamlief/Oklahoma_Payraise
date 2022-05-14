@@ -5,6 +5,12 @@ library(ggrepel)
 library(scales)
 library(ggridges)
 
+# note - this is a partially developed package used to format scales separately by
+# facet, not strictly needed. See facet_grid_sc calls and swap for commented
+# out calls to facet_grid if you don't want to install it.
+devtools::install_github("zeehio/facetscales")
+library(facetscales)
+
 WIDTH = 6
 HEIGHT = 4
 
@@ -38,50 +44,51 @@ turn_pipe <- function(dat, ...) {
 turns <- list()
 
 # teacher-state
-turns[["Teacher State"]] <- df_payroll %>% 
+turns[["Teaching job, state"]] <- df_payroll %>% 
   filter(group == "teacher") %>% 
   turn_pipe()
 
 # State
-turns[["Any Job State"]] <- df_payroll %>% 
+turns[["Any job, state"]] <- df_payroll %>% 
   turn_pipe()
 
 # teacher-district !! standard
-turns[["Teacher District"]] <- df_payroll %>% 
+turns[["Teaching job, district"]] <- df_payroll %>% 
   filter(group == "teacher") %>%
   turn_pipe(NCES_leaid)
 
 # district
-turns[["Any Job District"]] <- df_payroll %>% 
+turns[["Any job, district"]] <- df_payroll %>% 
   turn_pipe(NCES_leaid)
 
 # teacher-school 
-turns[["Teacher School"]] <- df_payroll %>% 
+turns[["Teaching job, school"]] <- df_payroll %>% 
   filter(group == "teacher") %>% 
   turn_pipe(school_id)
 
 # school 
-turns[["Any Job School"]] <- df_payroll %>% 
+turns[["Any job, school"]] <- df_payroll %>% 
   turn_pipe(school_id)
 
 turn_dat <- bind_rows(turns, .id = "turnover_type")
 
 ggplot(data = turn_dat %>% filter(year != 2021) %>%
-         mutate(year = paste0(year-1, "-", year),
+         mutate(year = paste0(year-1, "-", year-2000),
                 label = if_else(year == max(year), turnover_type, NA_character_)), 
        aes(x = factor(year), y = turnover, 
            color = turnover_type, group = turnover_type)) +
   geom_line() +
   geom_vline(xintercept = 11, linetype = "dashed", color = "black") +
-  labs(title = "Teacher Turnover: School, District, and State", 
+  labs(title = "Teacher turnover: school, district, and state", 
        x = "", 
-       y = "Teacher Turnover Rate") +
+       y = "Teacher turnover rate") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90)) +
   coord_cartesian(clip = 'off') +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   geom_text(aes(label = label), hjust = 0, nudge_x = 0.1) +
   theme(legend.position = 'none',
-        plot.margin = margin(0.1, 2.6, 0.1, 0.1, "cm")) 
+        plot.margin = margin(0.1, 3.6, 0.1, 0.1, "cm")) 
     
 ggsave("figures/turn_comparison.png", bg = "white", width = WIDTH, height = HEIGHT)
 
@@ -115,12 +122,12 @@ turn_rates_dist <-
 
 turn_rates_state <- turn %>%
   group_by(year) %>% 
-  summarize(state_turnover = mean(state_turnover), 
-            state_salary = mean(salary_total)) 
+  summarize(State_turnover = mean(state_turnover), 
+            State_salary = mean(salary_total)) 
 
 turn_rates_state <- 
-  full_join(turn_rates_state %>% select(-state_turnover), 
-            turn_rates_state %>% select(-state_salary) %>% 
+  full_join(turn_rates_state %>% select(-State_turnover), 
+            turn_rates_state %>% select(-State_salary) %>% 
               mutate(year = year + 1)) %>% # hack the year up for the turnover rate!
   filter(year != 2007, year != 2021) 
 
@@ -128,34 +135,40 @@ turn_rates <- turn_rates_state %>%
   tidylog::full_join(turn_rates_dist %>% 
                        group_by(year) %>% 
                        summarize(
-                         dist_turn_p25 = quantile(dist_turnover, .25),
-                         dist_turn_p50 = quantile(dist_turnover, .5),
-                         dist_turn_p75 = quantile(dist_turnover, .75),
-                         dist_salary_p25 = quantile(dist_salary, .25),
-                         dist_salary_p50 = quantile(dist_salary, .5),
-                         dist_salary_p75 = quantile(dist_salary, .75)))
+                         District_turn_25th_pctile = quantile(dist_turnover, .25),
+                         District_turn_50th_pctile = quantile(dist_turnover, .5),
+                         District_turn_75th_pctile = quantile(dist_turnover, .75),
+                         District_salary_25th_pctile = quantile(dist_salary, .25),
+                         District_salary_50th_pctile = quantile(dist_salary, .5),
+                         District_salary_75th_pctile = quantile(dist_salary, .75)))
 
 ggplot(data = turn_rates %>% 
          pivot_longer(-year) %>% 
-         mutate(x2 = as.numeric(as.factor(year)) + 1.2,
-                year = paste0(year-1, "-", year), 
+         mutate(x2 = as.numeric(as.factor(year)),
+                year = paste0(year-1, "-", year-2000), 
                 type = ifelse(str_detect(name, "salary"), 
-                              "salary", "turnover"), 
-                color = str_remove(name, "_salary|_turnover|_turn"), 
+                              "Salary", "Turnover"),
+                color = str_remove(name, "_salary|_turnover|_turn"),
+                color = str_replace_all(color, "_", " "),
                 label = if_else(year == max(year), color, NA_character_)), 
        aes(year, value, color = color, group = name)) + 
   geom_line() +
-  facet_wrap(~type, nrow = 2, scales = "free_y") +
-  geom_vline(xintercept = "2017-2018", linetype = "dashed", color = "black") +
+  # facet_grid(rows = vars(type), scales = "free_y", switch = "y") +
+  facet_grid_sc(rows = vars(type), switch = "y",
+                scales = list(y = list("Salary" = scale_y_continuous(labels = scales::label_dollar()),
+                                       "Turnover" = scale_y_continuous(labels = scales::percent_format())))) +
+  geom_vline(xintercept = "2017-18", linetype = "dashed", color = "black") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90)) +
-  labs(title = "State and District Turnover Rates by Year", 
+  labs(title = "Salaries and turnover rates, state average and district quartiles", 
        x = NULL, y = NULL) +
   coord_cartesian(clip = 'off') +
-  geom_text_repel(aes(x = x2, label = label), direction = "y", na.rm = T, 
-                  segment.size = 0) +
+  geom_text_repel(aes(x = x2, label = label),hjust = 0, direction = "y", na.rm = T, 
+                  segment.size = 0, xlim = c(0, 16), nudge_x = 0) +
   theme(legend.position = 'none',
-        plot.margin = margin(0.1, 2.6, 0.1, 0.1, "cm")) 
+        plot.margin = margin(0.1, 2.6, 0.1, 0.1, "cm"), 
+        strip.placement = "outside", panel.spacing = unit(2, "lines"),
+        strip.text.y = element_text(size = 13)) 
 
 # Labels got screwed up
 # Manually saved width = 811 height = 545
@@ -194,14 +207,20 @@ turn_subject <-
 
 ggplot(data = turn_subject %>% 
          pivot_longer(-c(subject, year)) %>% 
-         mutate(year = paste0(year-1, "-", year)), 
+         mutate(year = paste0(year-1, "-", year-2000), 
+                name = if_else(name == "subject_salary", "Salary", "Turnover")), 
        aes(year, value, color = subject, group = subject)) + 
   geom_line() +
-  facet_wrap(~name, nrow = 2, scales = "free_y") +
-  geom_vline(xintercept = "2017-2018", linetype = "dashed", color = "black") +
+  # facet_grid(rows = vars(name), scales = "free_y", switch = "y") +
+  facet_grid_sc(rows = vars(name), switch = "y",
+                scales = list(y = list("Salary" = scale_y_continuous(labels = scales::label_dollar()),
+                                       "Turnover" = scale_y_continuous(labels = scales::percent_format())))) +
+  geom_vline(xintercept = "2017-18", linetype = "dashed", color = "black") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90)) +
-  labs(title = "Turnover Rates by Subject Area", 
+  theme(axis.text.x = element_text(angle = 90), 
+        strip.placement = "outside", panel.spacing = unit(2, "lines"), 
+        strip.text.y = element_text(size = 13)) +
+  labs(title = "Salaries and turnover rates by subject area", color = "Subject",
        x = NULL, y = NULL)
 
 ggsave("figures/subject_turn.png", bg = "white", width = WIDTH, height = HEIGHT)
@@ -217,7 +236,7 @@ ggsave("figures/subject_turn.png", bg = "white", width = WIDTH, height = HEIGHT)
 turn_rate_exp <- turn %>%  
   mutate(experience = cut(experience_total,
                           breaks = c(-Inf, 1, 5, 10, 20, Inf),  
-                          labels = c("New (0-1)", "Early (2-5)", "Mid (6-10)", "Experienced (11-20)", "Senior (21+)"), 
+                          labels = c("New (0-1)", "Early career (2-5)", "Mid career (6-10)", "Experienced (11-20)", "Senior (21+)"), 
                           ordered_result = TRUE)) %>% 
   group_by(experience, year) %>% 
   summarize(experience_turnover = mean(state_turnover),
@@ -228,25 +247,31 @@ turn_rate_exp <-
             turn_rate_exp %>% select(-experience_salary) %>% 
               mutate(year = year + 1)) %>% # hack the year up for the turnover rate!
   filter(year != 2007, year != 2021) 
-  
+
 ggplot(data = turn_rate_exp %>% 
          pivot_longer(-c(experience, year)) %>% 
-         mutate(x2 = as.numeric(as.factor(year)) + 2,
-           year = paste0(year-1, "-", year),
+         mutate(x2 = as.numeric(as.factor(year)),
+                year = paste0(year-1, "-", year-2000),
+                name = if_else(name == "experience_salary", "Salary", "Turnover"),
                 label = ifelse(year == max(year), as.character(experience), NA)), 
        aes(year, value, color = experience, group = experience)) + 
   geom_line() +
-  facet_wrap(~name, nrow = 2, scales = "free_y") +
-  geom_vline(xintercept = "2017-2018", linetype = "dashed", color = "black") +
+  # facet_grid(rows = vars(name), scales = "free_y", switch = "y") +
+  facet_grid_sc(rows = vars(name), switch = "y",
+                scales = list(y = list("Salary" = scale_y_continuous(labels = scales::label_dollar()),
+                                       "Turnover" = scale_y_continuous(labels = scales::percent_format())))) +
+  geom_vline(xintercept = "2017-18", linetype = "dashed", color = "black") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90)) +
-  labs(title = "State Turnover Rates by Experience Level", 
+  labs(title = "Salary and turnover rates by years of teaching experience", 
        x = NULL, y = NULL) +
   coord_cartesian(clip = 'off') +
-  geom_text_repel(aes(x = x2, label = label), direction = "y", na.rm = T, 
-                  segment.size = 0, hjust = 0) +
+  geom_text_repel(aes(x = x2, label = label), hjust = 0, direction = "y", na.rm = T, 
+                  segment.size = 0,  xlim = c(0, 16)) +
   theme(legend.position = 'none',
-        plot.margin = margin(0.1, 2.6, 0.1, 0.1, "cm")) +
+        plot.margin = margin(0.1, 2.7, 0.1, 0.1, "cm"),
+        strip.placement = "outside", panel.spacing = unit(2, "lines"),
+        strip.text.y = element_text(size = 13))  +
   scale_color_brewer(palette = "Set1")
 
 # Labels got screwed up
@@ -265,14 +290,14 @@ df_payroll <- df_payroll %>%
 p_excl <- nrow(df_payroll %>% filter(salary_total > 80000 | salary_total < 20000)) / nrow(df_payroll)
 
 ggplot(data = df_payroll,
-       aes(y = paste0(year-1, "-", year),
+       aes(y = paste0(year-1, "-", year-2000),
            x = salary_total)) +
   geom_density_ridges() +
   coord_cartesian(xlim = c(20000, 80000)) +
   theme_minimal() +
   scale_x_continuous(labels = label_number(prefix = "$", suffix = "K", scale = 1e-3)) +
   labs(x = "Total Salary", y = NULL, 
-       caption = str_wrap("Figures excludes 2.4% of records with salaries < $20K or > $80K. Figures includes all teachers, regardless of FTE level."),
-       title = "Distribution of Oklahoma Teacher Total Salaries")
+       caption = str_wrap("Figure excludes 2.4% of records with salaries < $20K or > $80K. Figure includes all teachers, regardless of full time equivalency level."),
+       title = "Distribution of Oklahoma teacher total salaries")
 
 ggsave("figures/salary_distribution_ridge.png", width = WIDTH, heigh = HEIGHT, bg = "white")

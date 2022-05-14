@@ -3,46 +3,46 @@
 library(tidyverse)
 library(ggpubr)
 
+# note - this is a partially developed package used to format scales separately by
+# facet, not strictly needed. See facet_grid_sc calls and swap for commented
+# out calls to facet_grid if you don't want to install it.
+devtools::install_github("zeehio/facetscales")
+library(facetscales)
+
 WIDTH = 6
 HEIGHT = 4
 
-df_state <- readRDS("Data/clean_state_2021-01-11_.rds") %>% 
+df_state <- readRDS("Data/clean_state.rds") %>% 
   filter(year <= 2020,
          year > 2008, 
          state %in% c("TX", "OK", "KS", "PSMatched")) %>% 
-  mutate(turnover = turnover * 100,
-         year = year - 2018)
+  mutate(year_c = year - 2018, 
+         year_l = if_else(year_c == min(year_c) | year_c == max(year_c), 
+                          paste0(year_c, "\n", paste0(year-1, "-", year-2000)),
+                          as.character(year_c)))
 
-p_sal <- ggplot(data = df_state %>% filter(sample == "Full State") %>% 
-                  mutate(label = if_else(year == max(year), state, NA_character_)), 
-                aes(x= factor(year), y = avg_sal, color = state, group = state)) + 
+df_state %>% filter(sample == "Full State") %>% 
+  mutate(label = if_else(year == max(year), state, NA_character_)) %>% 
+  pivot_longer(c(avg_sal, turnover), names_to = "name", values_to = "value") %>% 
+  mutate(name = if_else(name == "avg_sal", "Salary", "Turnover")) %>% 
+  ggplot(., 
+         aes(x= factor(year_c), y = value, color = state, group = state)) +
   geom_line() +
+  # facet_grid(rows = vars(name), scales = "free_y", switch = "y") +
+  facet_grid_sc(rows = vars(name), switch = "y",
+                scales = list(y = list("Salary" = scale_y_continuous(labels = scales::label_dollar()),
+                                       "Turnover" = scale_y_continuous(labels = scales::percent_format())))) +
   geom_vline(xintercept = 10, linetype = "dashed", color = "black") +
-  labs(title = "Panel A: Teacher Salaries", x = "", y = "Nominal Salary") +
-  theme_bw() +
-  scale_color_brewer(palette = "Set2") +
-  coord_cartesian(clip = 'off', ylim = c(35000, 60000)) +
-  geom_text(aes(label = label), hjust = 0, nudge_x = 0.1, na.rm = T) +
+  theme_minimal() +
+  labs(title = "Salaries and turnover rates, by state", 
+       x = NULL, y = NULL) +
+  coord_cartesian(clip = 'off') +
+  geom_text(aes(label = label) ,hjust = 0,  na.rm = T, 
+                nudge_x = 0) +
   theme(legend.position = 'none',
-        plot.margin = margin(0.1, 2.6, 0.1, 0.1, "cm")) 
-
-
-p_turn <- ggplot(data = df_state %>%
-                   filter(sample == "Full State") %>% 
-                   mutate(label = if_else(year == max(year), state, NA_character_)), 
-                 aes(x= factor(year), y = turnover, color = state, group = state)) + 
-  geom_line() +
-  geom_vline(xintercept = 10, linetype = "dashed", color = "black") +
-  labs(title = "Panel B: Teacher Turnover", x = "", y = "Teacher Turnover Rate") +
-  theme_bw() +
+        strip.placement = "outside", panel.spacing = unit(2, "lines"),
+        strip.text.y = element_text(size = 13)) +
   scale_color_brewer(palette = "Set2") +
-  coord_cartesian(clip = 'off', ylim = c(0, 17)) +
-  geom_text(aes(label = label), hjust = 0, nudge_x = 0.1, na.rm = T) +
-  theme(legend.position = 'none',
-        plot.margin = margin(0.1, 2.6, 0.1, 0.1, "cm")) 
-
-ggpubr::ggarrange(p_sal, p_turn, 
-                  nrow = 2)
-# Labels got screwed up
-# Manually saved width = 811 height = 545
-# ggsave("figures/state_sal_turn_comp.png", bg = "white", width = WIDTH, height = HEIGHT)
+  scale_x_discrete(name = "", breaks = sort(unique(df_state$year_c)), labels = unique(df_state$year_l))
+  
+ggsave("figures/state_sal_turn_comp.png", bg = "white", width = WIDTH, height = HEIGHT)

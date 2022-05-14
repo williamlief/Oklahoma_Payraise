@@ -4,6 +4,7 @@ library(maps)
 library(ggthemes)
 
 # treatment group map -----------------------------------------------------
+# Note - state labels manually added with photo editor
 
 df_district <- readRDS("Data/clean_district.rds") %>%
   filter(year <= 2020,
