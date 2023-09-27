@@ -72,6 +72,9 @@ df2 <- df %>%
   filter(row_number() == 1) %>% 
   ungroup()
 
+df2 <- df2 %>% 
+  mutate(year = if_else(year == 2024, 2023, year)) # changed file naming convention, breaking year identification
+
 # Merge on NCES ----------------------------------------------------------------
 
 nces <- readRDS("data/nces_data.rds") %>%
