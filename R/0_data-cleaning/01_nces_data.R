@@ -4,7 +4,7 @@
 
 library(tidyverse)
 
-files <- list.files("data-raw/nces", full.names = TRUE)
+files <- list.files("data-raw/nces", "*.csv", full.names = TRUE)
 
 raw_all <- map(files, read_csv,
            skip = 6,
@@ -32,7 +32,7 @@ df3 <- df2 %>%
     "county" = "County Name [District] ",
     "NCES_ID" = "Agency ID - NCES Assigned [District] Latest available year",
     "agency_type" = "Agency Type [District] ",
-    "locale" = "Urban-centric Locale [District] ",
+    "locale" = "Locale [District] ",
     "students_total" = "Total Students All Grades (Excludes AE) [District] " ,
     "students_lep" = "Limited English Proficient (LEP) / English Language Learners (ELL) [District] ", 
     "students_iep" = "Individualized Education Program Students [District] ", 
