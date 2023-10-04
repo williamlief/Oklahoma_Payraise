@@ -10,7 +10,10 @@ readfun <- function(input_file) {
   print(input_file)
   df <- readxl::read_excel(input_file, skip = 1, col_types = "text") 
   df$year <- 2001 + as.numeric(substr(stringr::str_extract(input_file, regex("FY\\d\\d")), 3, 4))
-    
+  
+  df <- df %>% 
+    mutate(year = if_else(year == 2024, 2023, year)) # changed file naming convention, breaking year identification
+  
   return(df)
 }
 
@@ -21,20 +24,29 @@ files <- list %>% map_dfr(readfun)
 df <- files %>% 
   mutate(
     source_id = coalesce(TeacherNumber, `Teacher Number`),
-    source_id_2 = staff_id,
-    name_first = tolower(coalesce(fname, firstname)),
-    name_last = tolower(coalesce(lname, lastname)),
+    source_id_2 = coalesce(staff_id, `staff id`),
+    name_first = tolower(coalesce(fname, firstname, `First Name`)),
+    name_last = tolower(coalesce(lname, lastname, `Last Name`)),
+    county_name = coalesce(county_name, `County Name`),
+    district_name = coalesce(district_name, `District Name`),
+    school_name = coalesce(school_name, `School Name`),
+    degree_desc = coalesce(degree_desc, `degree desc`),
+    race_desc = coalesce(race_desc, `race desc`),
+    subject_desc = coalesce(subject_desc, `subject desc`),
+    co = coalesce(co, County),
+    dist = coalesce(dist, District),
+    site = coalesce(site, Site),
     localid = paste("OK", co, dist, sep = "-"),
     school_id = paste(co, dist, site, sep = "-"),
     gender = tolower(gender),
-    experience_total = coalesce(total_experience, tot_exper),
-    fte = coalesce(fte, FTE),
-    salary_base = as.numeric(base_salary), 
-    salary_fringe = as.numeric(total_fringe),
-    salary_other = as.numeric(coalesce(total_oth_salary, `Other pay`)),
-    salary_extra_duty = as.numeric(coalesce(total_extra_duty, `extra_duty pay`)),
-    reason_for_leaving_desc = coalesce(reason_for_leaving, Reason_for_Leaving),
-    reason_for_leaving_code = coalesce(`Reason For Leaving  (RFL_code)`, rfl_code)
+    experience_total = coalesce(total_experience, tot_exper, `Total Experience`),
+    fte = coalesce(fte, FTE, `Federal FTE`),
+    salary_base = as.numeric(coalesce(base_salary, `base salary`)), 
+    salary_fringe = as.numeric(coalesce(total_fringe, `total fringe`)),
+    salary_other = as.numeric(coalesce(total_oth_salary, `Other pay`, `other pay`)),
+    salary_extra_duty = as.numeric(coalesce(total_extra_duty, `extra_duty pay`, `extra duty pay`)),
+    reason_for_leaving_desc = coalesce(reason_for_leaving, Reason_for_Leaving, `Reason for Leaving`),
+    reason_for_leaving_code = coalesce(`Reason For Leaving  (RFL_code)`, rfl_code, `Reason For Leaving  (RFL_code)`)
     ) %>% 
   rename(county_id = co, 
          position = jobdesc,
@@ -71,9 +83,6 @@ df2 <- df %>%
   ) %>% 
   filter(row_number() == 1) %>% 
   ungroup()
-
-df2 <- df2 %>% 
-  mutate(year = if_else(year == 2024, 2023, year)) # changed file naming convention, breaking year identification
 
 # Merge on NCES ----------------------------------------------------------------
 
