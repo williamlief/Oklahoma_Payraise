@@ -101,7 +101,7 @@ APR <- readRDS("Data/TX_APR.rds")
 Snapshot <- readRDS("Data/TX_Snapshot.rds")
 
 # Snapshot has more details, but is a year behind APR
-TX <- APR %>% filter(year == 2020) %>%
+TX <- APR %>% filter(year == 2022) %>%
   bind_rows(Snapshot)
 
 
@@ -127,7 +127,8 @@ TX2 <- TX %>%
 KS <- readRDS("Data/KS_all.rds")
 KS2 <- KS %>% 
   mutate(NCES_leaid = as.double(NCES_leaid), 
-         state = "KS")
+         state = "KS") %>% 
+  filter(year != 2021) # all turnover estimates are 0 in this year
 
 # Stack  em up, filter out some NA require observed in all years ---------------
 
@@ -229,8 +230,7 @@ df6 <- df5 %>%
          p_black, p_white, p_hispanic, # teacher workforce vars
          nces, teacher_fte_nces = teacher_fte, students_total, student_teacher_ratio, starts_with("p_students"), # nces vars
          bls, unemployment_rate
-         ) %>% 
-  filter(year <= 2020)
+         ) 
 
 # Create weight variables for regressions
 weight_full <- df6 %>% 

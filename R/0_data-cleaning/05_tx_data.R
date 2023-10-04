@@ -79,22 +79,32 @@ rm(files, stack, stack2, stack3, stack4, test, readfun)
 # TX_APR - Academic Performance Reports ----------------------------------------
 
 files <- list.files(path = "data-raw/Texas/AcademicPerformanceReports", 
-                    pattern = "DSTAF.xls", 
+                    pattern = "DSTAF", 
                     recursive = TRUE,
                     full.names = TRUE)
 # What the what? These files aren't excel files, instead they are html tables that 
-# are given an xls extension. 
+# are given an xls extension. In 2020-21 files switch to csv and are actually csv.
 # year is not derived from data, assumes my file directory structure is correct.
 readfun <- function(input_file) {
   print(input_file)
   options(stringsAsFactors = FALSE)
-  df <-  XML::readHTMLTable(input_file, colClasses = "character", 
-                            header = TRUE, 
-                            as.data.frame = TRUE, 
-                            which = 1)
-
+  
   year_variable <- stringr::str_extract(input_file, "\\d{4}")
-  df$year <- as.numeric(year_variable) + 1
+  year <- as.numeric(year_variable) + 1
+  if (year <= 2020) {
+  
+    df <-  XML::readHTMLTable(input_file, colClasses = "character", 
+                              header = TRUE, 
+                              as.data.frame = TRUE, 
+                              which = 1)
+  } else {
+    
+    df <- read_csv(input_file, col_types = "c")
+    
+  }
+
+  
+  df$year <- year
 
   return(df)
 }
@@ -145,7 +155,7 @@ test <- stack3 %>% filter(is.na(NCES_leaid), year >= 2007)
 
 # Clean up variables
 stack4 <- stack3 %>%
-  mutate_all(list(~na_if(., "."))) %>% 
+  mutate(across(where(is.character), ~na_if(., "."))) %>% 
   mutate_all(as.numeric)
 
 saveRDS(stack4, "Data/TX_APR.rds")
