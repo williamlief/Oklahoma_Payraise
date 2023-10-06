@@ -8,7 +8,7 @@
 * data-raw: Includes all original source data. Not available on github due to file size. Available
 in [OSF repository](https://osf.io/7f6ms/files/). Note that the Texas data needs to be 
 unzipped. 
-  * Kansas data obtained by public records request 
+  * Kansas data obtained by public records request, not updated and omitted from EFP version 
   * Oklahoma data downloaded from [Oklahoma Department of Education](http://sde.ok.gov/sde/documents/2018-01-02/certified-staff-salary-information)
   * Texas data downloaded from Texas Education Agency: 
     * [Snapshot](https://rptsvr1.tea.texas.gov/perfreport/snapshot/download.html)

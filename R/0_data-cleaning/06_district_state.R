@@ -122,20 +122,11 @@ TX2 <- TX %>%
   mutate(state = "TX") %>% 
   filter(year >= 2007) 
 
-# Kansas ------------------------------------------------------------------
-
-KS <- readRDS("Data/KS_all.rds")
-KS2 <- KS %>% 
-  mutate(NCES_leaid = as.double(NCES_leaid), 
-         state = "KS") %>% 
-  filter(year != 2021) # all turnover estimates are 0 in this year
-
 # Stack  em up, filter out some NA require observed in all years ---------------
 
 df <- 
   bind_rows(OK2, 
-            TX2,
-            KS2) %>% 
+            TX2) %>% 
 select(-c(p_le5_yr_exp, 
           p_adv_deg, 
           p_other)) %>% 
@@ -162,7 +153,8 @@ nces <- readRDS("Data/nces_data.rds") %>%
          students_total, student_teacher_ratio, teacher_fte, nces, county)
 
 df2 <- df %>% 
-  tidylog::left_join(nces, by = c("year", "state", "NCES_leaid"))  
+  tidylog::left_join(nces, by = c("year", "state", "NCES_leaid")) 
+# NCES data not yet available for 2023
 
 # Add on BLS Data --------------------------------------------------------------
 
@@ -179,6 +171,7 @@ BLS <- BLS_raw %>%
 # Match BLS calendar year to spring of school year
 df3 <- df2 %>% 
   tidylog::left_join(BLS, by = c("year", "county", "state"))
+# BLS data not yet available for 2023
 
 # merge on border counties -----------------------------------------------------
 

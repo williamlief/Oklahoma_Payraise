@@ -13,8 +13,7 @@ WIDTH = 6
 HEIGHT = 4
 
 df_state <- readRDS("Data/clean_state.rds") %>% 
-  filter(year <= 2020,
-         year > 2008, 
+  filter(year > 2008, 
          state %in% c("TX", "OK", "KS", "PSMatched")) %>% 
   mutate(year_c = year - 2018, 
          year_l = if_else(year_c == min(year_c) | year_c == max(year_c), 
@@ -28,10 +27,10 @@ df_state %>% filter(sample == "Full State") %>%
   ggplot(., 
          aes(x= factor(year_c), y = value, color = state, group = state)) +
   geom_line() +
-  # facet_grid(rows = vars(name), scales = "free_y", switch = "y") +
-  facet_grid_sc(rows = vars(name), switch = "y",
-                scales = list(y = list("Salary" = scale_y_continuous(labels = scales::label_dollar()),
-                                       "Turnover" = scale_y_continuous(labels = scales::percent_format())))) +
+  facet_grid(rows = vars(name), scales = "free_y", switch = "y") +
+  #facet_grid_sc(rows = vars(name), switch = "y",
+  #              scales = list(y = list("Salary" = scale_y_continuous(labels = scales::label_dollar()),
+  #                                     "Turnover" = scale_y_continuous(labels = scales::percent_format())))) +
   geom_vline(xintercept = 10, linetype = "dashed", color = "black") +
   theme_minimal() +
   labs(title = "Salaries and turnover rates, by state", 
