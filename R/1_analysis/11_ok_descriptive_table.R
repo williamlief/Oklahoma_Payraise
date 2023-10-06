@@ -3,9 +3,9 @@
 library(tidyverse)
 
 df_district <- readRDS("Data/clean_district.rds") %>%
-  filter(year <= 2020,
+  filter(year <= 2023,
          year > 2008, 
-         state %in% c("TX", "OK", "KS")) %>% 
+         state %in% c("OK")) %>% 
   mutate(turnover = turnover * 100, 
          year = year - 2018)
 

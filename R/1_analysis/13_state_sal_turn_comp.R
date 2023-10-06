@@ -3,10 +3,10 @@
 library(tidyverse)
 library(ggpubr)
 
-# note - this is a partially developed package used to format scales separately by
+# note - this is a now archived package used to format scales separately by
 # facet, not strictly needed. See facet_grid_sc calls and swap for commented
 # out calls to facet_grid if you don't want to install it.
-devtools::install_github("zeehio/facetscales")
+# devtools::install_github("zeehio/facetscales", ref = "1bd739b34b64f4ae8efe45dcb07911b9c0490d8e")
 library(facetscales)
 
 WIDTH = 6
@@ -14,7 +14,8 @@ HEIGHT = 4
 
 df_state <- readRDS("Data/clean_state.rds") %>% 
   filter(year > 2008, 
-         state %in% c("TX", "OK", "KS", "PSMatched")) %>% 
+         year < 2023,
+         state %in% c("TX", "OK", "PSMatched")) %>% 
   mutate(year_c = year - 2018, 
          year_l = if_else(year_c == min(year_c) | year_c == max(year_c), 
                           paste0(year_c, "\n", paste0(year-1, "-", year-2000)),
@@ -27,10 +28,10 @@ df_state %>% filter(sample == "Full State") %>%
   ggplot(., 
          aes(x= factor(year_c), y = value, color = state, group = state)) +
   geom_line() +
-  facet_grid(rows = vars(name), scales = "free_y", switch = "y") +
-  #facet_grid_sc(rows = vars(name), switch = "y",
-  #              scales = list(y = list("Salary" = scale_y_continuous(labels = scales::label_dollar()),
-  #                                     "Turnover" = scale_y_continuous(labels = scales::percent_format())))) +
+  #facet_grid(rows = vars(name), scales = "free_y", switch = "y") +
+  facet_grid_sc(rows = vars(name), switch = "y",
+                scales = list(y = list("Salary" = scale_y_continuous(labels = scales::label_dollar()),
+                                       "Turnover" = scale_y_continuous(labels = scales::percent_format())))) +
   geom_vline(xintercept = 10, linetype = "dashed", color = "black") +
   theme_minimal() +
   labs(title = "Salaries and turnover rates, by state", 

@@ -4,7 +4,7 @@ library(starpolishr)
 library(lfe)
 
 df_district <- readRDS("Data/clean_district.rds") %>%
-  filter(year <= 2020,
+  filter(year < 2023,
          year > 2008) %>% 
   mutate(turnover = turnover * 100, 
          year = year - 2018)
@@ -13,7 +13,7 @@ df_district_border <- df_district %>% filter(border == 1)
 df_district_psm <- df_district %>% filter(!is.na(psm_group))
 
 df_state <- readRDS("Data/clean_state.rds") %>% 
-  filter(year <= 2020,
+  filter(year < 2023,
          year > 2008) %>% 
   mutate(turnover = turnover * 100,
          year = year - 2018)

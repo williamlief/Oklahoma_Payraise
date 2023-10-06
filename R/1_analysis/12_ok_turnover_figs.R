@@ -5,10 +5,10 @@ library(ggrepel)
 library(scales)
 library(ggridges)
 
-# note - this is a partially developed package used to format scales separately by
+# note - this is a now archived package used to format scales separately by
 # facet, not strictly needed. See facet_grid_sc calls and swap for commented
 # out calls to facet_grid if you don't want to install it.
-devtools::install_github("zeehio/facetscales")
+# devtools::install_github("zeehio/facetscales", ref = "1bd739b34b64f4ae8efe45dcb07911b9c0490d8e")
 library(facetscales)
 
 WIDTH = 6
@@ -72,7 +72,7 @@ turns[["Any job, school"]] <- df_payroll %>%
 
 turn_dat <- bind_rows(turns, .id = "turnover_type")
 
-ggplot(data = turn_dat %>% filter(year != 2021) %>%
+ggplot(data = turn_dat %>% filter(year != 2024) %>%
          mutate(year = paste0(year-1, "-", year-2000),
                 label = if_else(year == max(year), turnover_type, NA_character_)), 
        aes(x = factor(year), y = turnover, 
@@ -129,7 +129,7 @@ turn_rates_state <-
   full_join(turn_rates_state %>% select(-State_turnover), 
             turn_rates_state %>% select(-State_salary) %>% 
               mutate(year = year + 1)) %>% # hack the year up for the turnover rate!
-  filter(year != 2007, year != 2021) 
+  filter(year != 2007, year != 2024) 
 
 turn_rates <- turn_rates_state %>% 
   tidylog::full_join(turn_rates_dist %>% 
@@ -164,14 +164,14 @@ ggplot(data = turn_rates %>%
        x = NULL, y = NULL) +
   coord_cartesian(clip = 'off') +
   geom_text_repel(aes(x = x2, label = label),hjust = 0, direction = "y", na.rm = T, 
-                  segment.size = 0, xlim = c(0, 16), nudge_x = 0) +
+                  segment.size = 0, xlim = c(0, 19), nudge_x = 0) +
   theme(legend.position = 'none',
         plot.margin = margin(0.1, 2.6, 0.1, 0.1, "cm"), 
         strip.placement = "outside", panel.spacing = unit(2, "lines"),
         strip.text.y = element_text(size = 13)) 
 
 # Labels got screwed up
-# Manually saved width = 811 height = 545
+# Manually saved width = 825 height = 550
 # ggsave("figures/dist_turn.png", bg = "white", width = WIDTH, height = HEIGHT)
 
 
