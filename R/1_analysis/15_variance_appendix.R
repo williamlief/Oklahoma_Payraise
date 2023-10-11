@@ -8,20 +8,20 @@ sg_stars = c(.05,.01,.001)
 sg_omit_stats = c("ser", "rsq")
 
 
-df_district <- readRDS("Data/clean_district_2021-01-11_.rds") %>%
-  filter(year <= 2020,
+df_district <- readRDS("Data/clean_district.rds") %>%
+  filter(year <= 2022,
          year > 2008, 
-         state %in% c("TX", "OK", "KS")) %>% 
+         state %in% c("TX", "OK")) %>% 
   mutate(turnover = turnover * 100, 
          year = year - 2018)
 
 df_district_border <- df_district %>% filter(border == 1)
 df_district_psm <- df_district %>% filter(!is.na(psm_group))
 
-df_state <- readRDS("Data/clean_state_2021-01-11_.rds") %>% 
-  filter(year <= 2020,
+df_state <- readRDS("Data/clean_state.rds") %>% 
+  filter(year <= 2022,
          year > 2008, 
-         state %in% c("TX", "OK", "KS", "PSMatched")) %>% 
+         state %in% c("TX", "OK", "PSMatched")) %>% 
   mutate(turnover = turnover * 100,
          year = year - 2018)
 
@@ -36,7 +36,7 @@ m1 <- lfe::felm(turnover ~ post_strike  | state + year_fac | 0 | 0,
 m2 <- lfe::felm(turnover ~ post_strike  | state + year_fac | 0 | state + year_fac, 
                 data = df_state %>% filter(sample == "Full State"))
 
-# state 2 year by 3 unit collapse
+# state 2 year by 2 unit collapse
 m3 <- lfe::felm(turnover ~ post_strike | state + year | 0 | 0,
                 data = df_state %>% filter(sample == "Full State") %>% 
                   group_by(state, post_strike, year = year > 0) %>% 
@@ -80,7 +80,7 @@ m1 <- lfe::felm(turnover ~ post_strike  | state + year_fac | 0 | 0,
 m2 <- lfe::felm(turnover ~ post_strike  | state + year_fac | 0 | state + year_fac, 
                 data = df_state %>% filter(sample == "Border Counties"))
 
-# state 2 year by 3 unit collapse
+# state 2 year by 2 unit collapse
 m3 <- lfe::felm(turnover ~ post_strike | state + year | 0 | 0,
                 data = df_state %>% filter(sample == "Border Counties") %>% 
                   group_by(state, post_strike, year = year > 0) %>% 
