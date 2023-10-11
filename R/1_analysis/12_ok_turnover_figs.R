@@ -203,7 +203,7 @@ turn_subject <-
   full_join(turn_subject %>% select(-subject_turnover), 
             turn_subject %>% select(-subject_salary) %>% 
               mutate(year = year + 1)) %>% # hack the year up for the turnover rate!
-  filter(year != 2007, year != 2021) 
+  filter(year != 2007, year != 2024) 
 
 ggplot(data = turn_subject %>% 
          pivot_longer(-c(subject, year)) %>% 
@@ -246,7 +246,7 @@ turn_rate_exp <-
   full_join(turn_rate_exp %>% select(-experience_turnover), 
             turn_rate_exp %>% select(-experience_salary) %>% 
               mutate(year = year + 1)) %>% # hack the year up for the turnover rate!
-  filter(year != 2007, year != 2021) 
+  filter(year != 2007, year != 2024) 
 
 ggplot(data = turn_rate_exp %>% 
          pivot_longer(-c(experience, year)) %>% 
@@ -267,7 +267,7 @@ ggplot(data = turn_rate_exp %>%
        x = NULL, y = NULL) +
   coord_cartesian(clip = 'off') +
   geom_text_repel(aes(x = x2, label = label), hjust = 0, direction = "y", na.rm = T, 
-                  segment.size = 0,  xlim = c(0, 16)) +
+                  segment.size = 0,  xlim = c(0, 19)) +
   theme(legend.position = 'none',
         plot.margin = margin(0.1, 2.7, 0.1, 0.1, "cm"),
         strip.placement = "outside", panel.spacing = unit(2, "lines"),
@@ -275,7 +275,7 @@ ggplot(data = turn_rate_exp %>%
   scale_color_brewer(palette = "Set1")
 
 # Labels got screwed up
-# Manually saved width = 811 height = 545
+# Manually saved width = 825 height = 550
 # ggsave("figures/exp_turn.png", bg = "white", width = WIDTH, height = HEIGHT)
 
 
