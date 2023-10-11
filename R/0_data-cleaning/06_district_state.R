@@ -177,7 +177,7 @@ df3 <- df2 %>%
 
 county <- readxl::read_excel("data-raw/border_counties.xlsx") %>% 
   mutate(border = 1) %>% 
-  filter(border_tx == 1 | border_ks == 1) %>% # only keep texas/kansas border
+  filter(border_tx == 1) %>% # only keep texas border
   select(county = County, state = State, starts_with("border"))
 
 df4 <- df3 %>% 
