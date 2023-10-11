@@ -287,7 +287,7 @@ finalm_psm_lowxp <- ms_lowxp[["m6"]]
 
 
 s_lowxp <- stargazer(ms_lowxp, 
-                     title = "Less Experienced vs More Experienced Districs",
+                     title = "Low Experience vs High Experience Districts",
                      type = sg_type,
                      omit.stat = sg_omit_stats,
                      star.cutoffs = sg_stars, 
